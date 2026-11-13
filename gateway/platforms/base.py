@@ -26,6 +26,7 @@ from gateway.runtime_footer import footer_onto_photo_caption, send_footer_unless
 from gateway.platforms.session_model import _SessionModelSettingsMixin
 from utils import normalize_proxy_url, unlink_files_older_than
 from agent.i18n import t
+from agent.redact import _LOG_UNSAFE_CHARS
 from agent.retry_utils import jittered_backoff
 from agent.proxy_bypass import first_proxy_env_value, should_bypass_proxy as _should_bypass_proxy
 
@@ -1086,11 +1087,6 @@ def validate_media_delivery_path(path: str, session_key: str = "") -> Optional[s
             and _file_is_recently_produced(resolved, window)):
         return str(resolved)
     return None
-
-
-# Control chars + Unicode line separators (NEL, LS, PS) that log aggregators treat as breaks: a
-# model-emitted path must not forge a log line.
-_LOG_UNSAFE_CHARS = re.compile(r"[\x00-\x1f\x7f\x85\u2028\u2029]")
 
 
 def _log_safe_path(path: str) -> str:
